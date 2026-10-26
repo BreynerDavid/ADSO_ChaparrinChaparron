@@ -1,0 +1,419 @@
+<!--
+  ==========================================================================
+  Proyecto: 100 proyectos JS · 01 - Tinder Swipe (Edición Premium)
+  Autor: Breyner Pineda
+  Descripción:
+  Este proyecto simula la funcionalidad completa de "Swipe" de Tinder en una 
+  experiencia web de alta gama: totalmente responsive, física de cartas 3D,
+  sintetizador de sonido por Web Audio API, sistema de partículas en Canvas,
+  navegación de fotos por historias, dynamic island interactiva, cajón de
+  mensajes y matches funcional, y modal de celebración "¡Es un Match!".
+  Todos los comentarios y documentación están en español.
+  ==========================================================================
+-->
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="Breyner Pineda">
+  <meta name="keywords" content="Adso, js, Modal, Tinder, Swipe, UI, Premium, WebAudio, Canvas">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Tinder Premium · Swipe Experience</title>
+
+  <!-- Google Fonts - Tipografía Moderna Premium -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Hoja de Estilos Separada -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Script Modular Separado -->
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <!-- Lienzo Canvas para efectos de partículas (confeti, corazones, estrellas, chispas) -->
+  <canvas id="fxCanvas" class="fx-canvas"></canvas>
+
+  <!-- Marco realista de Smartphone con elevación y sombras premium -->
+  <div class="phone-wrapper shadow">
+    <main id="appPhone">
+      <!-- Notificación flotante estilo iOS Toast -->
+      <div id="toastNotification" class="toast-notification" aria-live="polite"></div>
+
+      <!-- Aura y resplandor para Super Boost -->
+      <div id="boostAura" class="boost-aura"></div>
+
+      <section>
+        <!-- Barra de Estado Superior (Status Bar + Dynamic Island Interactiva) -->
+        <div class="status-bar">
+          <span class="status-time" id="statusClock">9:41</span>
+          
+          <!-- Dynamic Island Inteligente -->
+          <div id="dynamicIsland" class="dynamic-island" title="Dynamic Island">
+            <div class="island-camera"></div>
+            <div id="islandContent" class="island-content">
+              <span class="island-dot"></span>
+            </div>
+          </div>
+
+          <div class="status-icons">
+            <!-- Icono Mute / Sonido -->
+            <button id="btnSoundToggle" class="status-btn-sound" aria-label="Silenciar o activar sonidos" title="Sonido activado">
+              <svg id="iconSoundOn" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              <svg id="iconSoundOff" viewBox="0 0 24 24" class="hidden"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+            <!-- Icono Señal Móvil -->
+            <svg class="sys-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.58 10.57 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+            <!-- Icono Batería -->
+            <svg class="sys-icon" viewBox="0 0 24 24"><path d="M17 5v14H7V5h10m1-2H6c-.55 0-1 .45-1 1v16c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zm-3-2H9c-.55 0-1 .45-1 1v1h8V2c0-.55-.45-1-1-1z"/></svg>
+          </div>
+        </div>
+
+        <!-- Encabezado de la App con Logo y Acciones Funcionales -->
+        <header>
+          <!-- Botón Perfil de Usuario -->
+          <button id="btnHeaderProfile" class="header-action-btn header-avatar-btn" aria-label="Perfil y Ajustes" title="Tu Perfil y Ajustes">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLewahsJZ70axVNoITDR7VZWknXDCh7YEsa22VZeTPAA&s=10" alt="Breyner Pineda" class="header-avatar-img" />
+            <span class="user-gold-badge">GOLD</span>
+          </button>
+
+          <!-- Logo Central Interactivo -->
+          <button id="btnHeaderLogo" class="logo-container" aria-label="Tinder Inicio" title="Tinder">
+            <img class="logo-img" src="./tinder-logo.webp" alt="Tinder Logo" />
+            <span class="brand-title">tinder</span>
+          </button>
+
+          <!-- Botón Mensajes y Matches con indicador de nuevos mensajes -->
+          <button id="btnHeaderMessages" class="header-action-btn" aria-label="Mensajes y matches" title="Chats y Matches">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+            </svg>
+            <span class="unread-badge">3</span>
+          </button>
+        </header>
+
+        <!-- Baraja de Tarjetas (Swipe Deck) -->
+        <div id="cardsDeck" class="cards">
+          
+          <!-- Estado Vacío (Empty State con Radar animado) -->
+          <div class="empty-state">
+            <div class="radar-pulse">
+              <div class="circle"></div>
+              <div class="circle"></div>
+              <div class="circle"></div>
+              <div class="avatar-center">
+                <img src="./tinder-logo.webp" alt="Radar de búsqueda" />
+              </div>
+            </div>
+            <h3>Buscando personas cerca...</h3>
+            <p>Has visto todos los perfiles disponibles en tu área. Vuelve a explorar o reinicia la baraja.</p>
+            <button id="btnReloadDeck" class="btn-reload" type="button">
+              <svg viewBox="0 0 24 24">
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              Reiniciar baraja
+            </button>
+          </div>
+
+          <!-- Las tarjetas de perfiles se generan dinámicamente desde script.js para soportar múltiples fotos, historias e interactividad completa -->
+
+        </div>
+
+        <!-- Footer con Botones de Acción Premium -->
+        <footer>
+          <!-- 1. Deshacer (Undo) -->
+          <button id="btnUndo" class="is-undo disabled" aria-label="Deshacer última acción" title="Deshacer (Z)">
+            <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+          </button>
+
+          <!-- 2. Rechazar (Nope) -->
+          <button id="btnNope" class="is-remove is-big" aria-label="Rechazar perfil" title="Rechazar (←)">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+
+          <!-- 3. Super Match (Star) -->
+          <button id="btnSuperLike" class="is-star" aria-label="Super Like" title="Super Like (↑)">
+            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          </button>
+
+          <!-- 4. Aceptar (Like / Match) -->
+          <button id="btnLike" class="is-fav is-big" aria-label="Me gusta" title="Me gusta (→)">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </button>
+
+          <!-- 5. Super Boost (Zap) -->
+          <button id="btnBoost" class="is-zap" aria-label="Super Boost" title="Super Boost (Rayo)">
+            <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          </button>
+        </footer>
+      </section>
+
+      <!-- =====================================================================
+           MODAL 1: CELEBRACIÓN "¡ES UN MATCH!"
+           ===================================================================== -->
+      <div id="matchModal" class="modal-overlay" aria-hidden="true">
+        <div class="match-content">
+          <div class="match-badge-glow">IT'S A MATCH!</div>
+          <h2 class="match-heading">¡Es un Match!</h2>
+          <p id="matchSubheading" class="match-subheading">Tú y Sofia os habéis gustado mutuamente</p>
+          
+          <div class="match-avatars">
+            <div class="avatar-ring user-ring">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLewahsJZ70axVNoITDR7VZWknXDCh7YEsa22VZeTPAA&s=10" alt="Tu foto de perfil" class="avatar-img" />
+            </div>
+            <div class="match-heart-center">
+              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div class="avatar-ring match-ring">
+              <img id="matchPartnerImg" src="./photos/1.webp" alt="Foto de tu match" class="avatar-img" />
+            </div>
+          </div>
+
+          <div class="match-form">
+            <div class="match-input-wrap">
+              <input id="matchInputMessage" type="text" placeholder="Di algo ingenioso para romper el hielo..." autocomplete="off" />
+              <button id="btnSendMatchMessage" type="button" aria-label="Enviar mensaje">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              </button>
+            </div>
+            <button id="btnKeepSwiping" class="btn-keep-swiping" type="button">Seguir deslizando</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           MODAL 2: CAJÓN DE MENSAJES Y MATCHES (DRAWER)
+           ===================================================================== -->
+      <div id="messagesDrawer" class="drawer-overlay" aria-hidden="true">
+        <div class="drawer-container">
+          <div class="drawer-header">
+            <h3>Matches & Mensajes</h3>
+            <button id="btnCloseMessages" class="drawer-close-btn" aria-label="Cerrar mensajes">
+              <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+
+          <div class="drawer-body">
+            <!-- Sección Nuevos Matches -->
+            <div class="matches-carousel-sec">
+              <div class="section-title">Nuevos Matches <span class="badge-count">5</span></div>
+              <div class="matches-carousel" id="matchesCarousel">
+                <!-- Se llena dinámicamente con matches -->
+              </div>
+            </div>
+
+            <!-- Sección Lista de Chats -->
+            <div class="chats-list-sec">
+              <div class="section-title">Conversaciones Recientes</div>
+              <div class="chats-list" id="chatsList">
+                <!-- Se llena dinámicamente -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-vista de Chat Activo (Conversación individual) -->
+          <div id="activeChatView" class="active-chat-view">
+            <div class="chat-header">
+              <button id="btnBackToChats" class="chat-back-btn" aria-label="Volver a la lista de chats">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+              </button>
+              <div class="chat-header-info">
+                <img id="chatPartnerAvatar" src="./photos/1.webp" alt="Avatar" class="chat-header-avatar" />
+                <div>
+                  <h4 id="chatPartnerName">Leila</h4>
+                  <span class="chat-status-online">En línea ahora</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-messages-body" id="chatMessagesContainer">
+              <!-- Mensajes se agregan en tiempo real -->
+            </div>
+
+            <div class="chat-input-bar">
+              <input id="chatTextInput" type="text" placeholder="Escribe un mensaje..." autocomplete="off" />
+              <button id="btnSendChatMsg" aria-label="Enviar">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           MODAL 3: PERFIL DE USUARIO Y AJUSTES
+           ===================================================================== -->
+      <div id="profileModal" class="modal-overlay" aria-hidden="true">
+        <div class="profile-modal-sheet">
+          <div class="modal-handle-bar"></div>
+          <div class="profile-modal-header">
+            <h3>Tu Perfil & Preferencias</h3>
+            <button id="btnCloseProfile" class="drawer-close-btn" aria-label="Cerrar perfil">
+              <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+
+          <div class="profile-modal-content">
+            <div class="user-hero-card">
+              <div class="user-photo-wrap">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLewahsJZ70axVNoITDR7VZWknXDCh7YEsa22VZeTPAA&s=10" alt="Breyner Pineda" />
+                <span class="verified-pill">
+                  <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </span>
+              </div>
+              <div class="user-details">
+                <h4>Breyner Pineda, 26</h4>
+                <p>Desarrollador Full Stack & Diseñador</p>
+                <div class="plan-badge-gold">
+                  <span class="flame-icon">🔥</span> Tinder Platinum
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-title">Ajustes de Descubrimiento</div>
+              
+              <div class="setting-row">
+                <div class="setting-labels">
+                  <span>Distancia Máxima</span>
+                  <strong id="distValue">25 km</strong>
+                </div>
+                <input id="distSlider" type="range" min="2" max="100" value="25" class="custom-range" />
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-labels">
+                  <span>Rango de Edad</span>
+                  <strong id="ageValue">20 - 32 años</strong>
+                </div>
+                <input id="ageSlider" type="range" min="18" max="50" value="32" class="custom-range" />
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-title">Experiencia & Audio</div>
+              <div class="setting-toggle-row">
+                <div>
+                  <div class="toggle-name">Efectos de Sonido Hápticos</div>
+                  <div class="toggle-desc">Sonidos de deslizar, chimes de match y pulsos</div>
+                </div>
+                <label class="switch-ui">
+                  <input id="sfxToggleSwitch" type="checkbox" checked />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-toggle-row">
+                <div>
+                  <div class="toggle-name">Efectos de Iluminación 3D</div>
+                  <div class="toggle-desc">Inclinación parallax de cartas al mover cursor</div>
+                </div>
+                <label class="switch-ui">
+                  <input id="tiltToggleSwitch" type="checkbox" checked />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <button id="btnSaveProfileSettings" class="btn-primary-action">Guardar preferencias</button>
+
+            <div class="creator-attribution">
+              <span>Creado con excelencia por</span>
+              <strong>Breyner Pineda</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           MODAL 4: DETALLES COMPLETOS DEL PERFIL (BOTTOM SHEET)
+           ===================================================================== -->
+      <div id="profileDetailSheet" class="detail-sheet-overlay" aria-hidden="true">
+        <div class="detail-sheet-container">
+          <div class="sheet-hero">
+            <img id="detailHeroImg" src="./photos/1.webp" alt="Foto ampliada del perfil" />
+            <button id="btnCloseDetailSheet" class="sheet-close-fab" aria-label="Cerrar detalles">
+              <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+            <div class="sheet-hero-gradient"></div>
+            <div class="sheet-hero-info">
+              <h2 id="detailNameAge">Leila <span class="age">27</span></h2>
+              <p id="detailOccupation">Diseñadora UX/UI & Ilustradora</p>
+            </div>
+          </div>
+
+          <div class="sheet-scrollable-body">
+            <div class="sheet-meta-pills" id="detailMetaPills">
+              <!-- Distancia, Ciudad, etc. -->
+            </div>
+
+            <div class="sheet-section">
+              <h4>Sobre mí</h4>
+              <p id="detailBioText" class="detail-bio-p">Amante del café de especialidad, los museos los domingos y los viajes imprevistos. Busco alguien con quien compartir buenas conversaciones y descubrir rincones secretos de la ciudad.</p>
+            </div>
+
+            <div class="sheet-section">
+              <h4>Pasiones & Intereses</h4>
+              <div class="detail-tags" id="detailTagsContainer">
+                <!-- Tags dinámicas -->
+              </div>
+            </div>
+
+            <div class="sheet-section">
+              <h4>Mi himno de Spotify</h4>
+              <div class="spotify-card">
+                <div class="spotify-album-art">
+                  <img id="detailSpotifyArt" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=150&q=80" alt="Carátula" />
+                  <div class="spotify-play-icon">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                </div>
+                <div class="spotify-info">
+                  <span class="song-title" id="detailSongTitle">Midnight City</span>
+                  <span class="song-artist" id="detailSongArtist">M83 · Hurry Up, We're Dreaming</span>
+                  <div class="equalizer-bars">
+                    <span class="bar bar-1"></span>
+                    <span class="bar bar-2"></span>
+                    <span class="bar bar-3"></span>
+                    <span class="bar bar-4"></span>
+                  </div>
+                </div>
+                <div class="spotify-logo-badge">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.308-1.758-8.793-.963-.335.077-.67-.133-.746-.468-.077-.334.132-.67.467-.746 3.808-.87 7.076-.51 9.721 1.113.294.18.388.563.208.857zm1.224-2.72c-.226.367-.706.482-1.072.257-2.69-1.653-6.79-2.132-9.97-1.166-.413.125-.85-.107-.974-.52-.125-.413.107-.85.52-.974 3.632-1.102 8.147-.568 11.239 1.332.366.225.482.705.257 1.071zm.105-2.835C14.692 8.95 8.085 8.73 4.247 9.896c-.495.15-1.022-.128-1.172-.622-.15-.495.13-1.022.624-1.172 4.417-1.34 11.67-1.09 15.421 1.137.443.264.59.838.327 1.282-.263.444-.838.59-1.282.327z"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de Acción dentro del Sheet -->
+            <div class="sheet-action-row">
+              <button id="btnSheetNope" class="sheet-action-btn is-nope" title="Descartar">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+              <button id="btnSheetSuper" class="sheet-action-btn is-super" title="Super Like">
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              </button>
+              <button id="btnSheetLike" class="sheet-action-btn is-like" title="Me gusta">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Atajos de teclado para escritorio con diseño refinado -->
+  <div class="keyboard-hints">
+    <div class="hint-pill"><span class="kbd-key">←</span> No</div>
+    <div class="hint-pill"><span class="kbd-key">→</span> Like</div>
+    <div class="hint-pill"><span class="kbd-key">↑</span> Super Like</div>
+    <div class="hint-pill"><span class="kbd-key">Z</span> Deshacer</div>
+    <div class="hint-pill"><span class="kbd-key">Espacio</span> Foto</div>
+    <div class="hint-pill"><span class="kbd-key">I</span> Info</div>
+  </div>
+
+</body>
+</html>
